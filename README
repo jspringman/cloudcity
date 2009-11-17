@@ -1,0 +1,26 @@
+Cloudcity is a bash script that makes backing up a system to Cloud Files via Duplicity a bit easier.
+
+Cloud Files is Rackspace's take on remote file storage and is similar to Amazon's S3. Learn
+more here: http://www.rackspacecloud.com
+
+Cloudcity depends on the following additional software:
+python-cloudfiles-1.6.0 http://github.com/rackspace/python-cloudfiles
+duplicity-0.5.18: http://savannah.nongnu.org/download/duplicity/duplicity-0.5.18.tar.gz
+This program has not been tested with other versions of the above software.
+
+You will need to modify the first part of the script, which is all configuration. At a minimum,
+you must add your Cloud Files username and API key, as well as a GPG passphrase of your choosing.
+
+Usage:
+  cloudcity [OPTION] [FILE]
+Options:
+  --age, -a [FILE]                 Specifies the age (in days) of the archived file or directory to be restored.
+  --clean, -c                      Deletes extraneous files in the backup repository.
+  --help, -h                       Displays this helpful information.
+  --list, -l                       Lists all the files currently stored in the backup repository.
+  --status, -s                     Displays information about the backup chains and sets in the backup repository.
+  --verify, -v                     Compares the files currently in the backup repository to those on the system.
+Examples:
+  cloudcity                        Performs an incremental or full backup, depending on whether the latter is due.
+  cloudcity /home/foo/             Restores the /home/foo directory.
+  cloudcity -a 2 /home/foo/bar.rb  Restores bar.rb as it existed two days ago.
