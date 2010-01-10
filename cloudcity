@@ -124,7 +124,7 @@ if [ ! $1 ]; then
   echo "Cleaning up..."
   ${DUPLICITY} cleanup --force ${TARGET} > ${LOGFILE}
   ${DUPLICITY} ${CLEANUP_TYPE} ${CLEANUP_VARIABLE} --force ${TARGET} | grep -v 'Last full backup' >> ${LOGFILE}
-  OPTIONS="${INCLUDE} ${EXCLUDE} --full-if-older-than ${FULL_IF_OLDER_THAN} --exclude=**"
+  OPTIONS="${EXCLUDE} ${INCLUDE} --full-if-older-than ${FULL_IF_OLDER_THAN} --exclude=**"
   echo "Performing backup..."
   ${DUPLICITY} ${ACTION} ${OPTIONS} ${ROOT} ${TARGET} | grep -v 'Last full backup' >> ${LOGFILE}
   ${DUPLICITY} collection-status ${TARGET} >> ${LOGFILE}
@@ -134,7 +134,7 @@ if [ ! $1 ]; then
   echo "Backup completed."
 
 elif [ "$1" == "--verify" ] || [ "$1" == "-v" ]; then
-  OPTIONS="${INCLUDE} ${EXCLUDE} --exclude=**"
+  OPTIONS="${EXCLUDE} ${INCLUDE} --exclude=**"
   ${DUPLICITY} verify ${OPTIONS} ${TARGET} ${ROOT}
 
 elif [ "$1" == "--clean" ] || [ "$1" == "-c" ]; then
@@ -199,4 +199,3 @@ unset CLOUDFILES_USERNAME
 unset CLOUDFILES_APIKEY 
 unset PASSPHRASE
 unset RACKSPACE_SERVICENET 
-
