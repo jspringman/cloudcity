@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2009 Jeffrey F. Springman <jspringman@unicusconcepts.com> 
+# Copyright (c) 2010 Jeffrey F. Springman <jspringman@unicusconcepts.com> 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -16,6 +16,7 @@
 #
 # ---------------------------------------------------------------------
 #
+# cloudcity 1.04 - 01-21-2010 - Added the ability to restore files to their original locations.
 # cloudcity 1.03 - 11-17-2009 - Added the RACKSPACE_SERVICENET environmental variable for 
 #                               unmetered transfers over the local network for those using the
 #                               DFW1 data center.
@@ -58,7 +59,7 @@ RESTORE="/tmp/restores"
 INCLUDE_LIST=("/bin" "/etc" "/home" "/opt" "/root" "/sbin" "/usr" "/var")
  
 # List of directories to exclude
-EXCLUDE_LIST=("${RESTORE}")
+EXCLUDE_LIST=("$RESTORE")
  
 # Full backup schedule
 FULL_IF_OLDER_THAN="30D"
@@ -79,8 +80,8 @@ LOG_FILE="duplicity.log"
 EMAIL_TO=""
 EMAIL_FROM="Backup Agent <root@`hostname`>"
  
-LOGFILE="${LOG_DIR}${LOG_FILE}"
-DUPLICITY="$(which duplicity)"
+LOGFILE="$LOG_DIR$LOG_FILE"
+DUPLICITY=`which duplicity`
 
 ### Do not edit below this line. ###
 
@@ -88,114 +89,111 @@ PROGRAM=`basename $0`
 TIME=`date +%Y%m%d%H%M%S`
 
 for include in ${INCLUDE_LIST[@]}; do
-  INCLUDE="${INCLUDE} --include=$include"
+  INCLUDE="$INCLUDE --include=$include"
 done
 
 for exclude in ${EXCLUDE_LIST[@]}; do
-  EXCLUDE="${EXCLUDE} --exclude=$exclude"
+  EXCLUDE="$EXCLUDE --exclude=$exclude"
 done
 
 function help {
-  echo -e "Usage:\n  ${PROGRAM} [OPTION] [FILE]"
-  echo -e "Options:\n  --age, -a [FILE]                 Specifies the age (in days) of the archived file or directory to be restored."
-  echo -e "  --clean, -c                      Deletes extraneous files in the backup repository."
-  echo -e "  --help, -h                       Displays this helpful information."
-  echo -e "  --list, -l                       Lists all the files currently stored in the backup repository."
-  echo -e "  --status, -s                     Displays information about the backup chains and sets in the backup repository."
-  echo -e "  --verify, -v                     Compares the files currently in the backup repository to those on the system."
-  echo -e "Examples:\n  ${PROGRAM}                        Performs an incremental or full backup, depending on whether the latter is due." 
-  echo -e "  ${PROGRAM} /home/foo/             Restores the /home/foo directory."
-  echo -e "  ${PROGRAM} -a 2 /home/foo/bar.rb  Restores bar.rb as it existed two days ago."
+  echo -e "Usage:\n  $PROGRAM [OPTIONS] [FILE]"
+  echo -e "Options:\n  -a AGE  Specifies the age (in days) of the archived file or directory to be restored."
+  echo -e "  -m      Automatically moves restored items to their original locations from the restore directory."
+  echo -e "  -h      Displays this helpful information."
+  echo -e "  -l      Lists all the files currently stored in the backup repository."
+  echo -e "  -s      Displays the status of the backup chains and sets in the backup repository."
+  echo -e "Examples:\n  $PROGRAM\n    Performs an incremental or full backup, depending on whether or not the latter is due." 
+  echo -e "  $PROGRAM /home/foo/\n    Restores the /home/foo directory."
+  echo -e "  $PROGRAM -ma 2 /home/foo/bar.rb\n    Restores bar.rb as it existed two days ago and moves it from the restore directory to /home/foo/."
+}
+
+function finish {
+  unset CLOUDFILES_USERNAME 
+  unset CLOUDFILES_APIKEY 
+  unset PASSPHRASE
+  unset RACKSPACE_SERVICENET
+  exit
 }
 
 if [ ! $1 ]; then
-  if [ ! -d ${LOG_DIR} ]; then
-    echo "Attempting to create log directory ${LOG_DIR}..."
-    if ! mkdir -p ${LOG_DIR}; then
-      echo "Log directory ${LOG_DIR} could not be created by this user: ${USER}"
-      exit 1
-    else
-      echo "Directory ${LOG_DIR} successfully created."
+  if [ ! -d $LOG_DIR ]; then
+    if ! mkdir -p $LOG_DIR; then
+      echo "Log directory $LOG_DIR could not be created by this user: $USER"
+      finish 
     fi
-  elif [ ! -w ${LOG_DIR} ]; then
-    echo "Log directory ${LOG_DIR} is not writeable by this user: ${USER}"
-    exit 1
+  elif [ ! -w $LOG_DIR ]; then
+    echo "Log directory $LOG_DIR is not writeable by this user: $USER"
+    finish
   fi
   echo "Cleaning up..."
-  ${DUPLICITY} cleanup --force ${TARGET} > ${LOGFILE}
-  ${DUPLICITY} ${CLEANUP_TYPE} ${CLEANUP_VARIABLE} --force ${TARGET} | grep -v 'Last full backup' >> ${LOGFILE}
-  OPTIONS="${EXCLUDE} ${INCLUDE} --full-if-older-than ${FULL_IF_OLDER_THAN} --exclude=**"
-  echo "Performing backup..."
-  ${DUPLICITY} ${ACTION} ${OPTIONS} ${ROOT} ${TARGET} | grep -v 'Last full backup' >> ${LOGFILE}
-  ${DUPLICITY} collection-status ${TARGET} >> ${LOGFILE}
+  $DUPLICITY cleanup --force $TARGET > $LOGFILE
+  $DUPLICITY $CLEANUP_TYPE $CLEANUP_VARIABLE --force $TARGET | grep -v 'Last full backup' >> $LOGFILE
+  options="$EXCLUDE $INCLUDE --full-if-older-than $FULL_IF_OLDER_THAN --exclude=**"
+  echo "Performing backup. Please wait..."
+  $DUPLICITY $ACTION $options $ROOT $TARGET | grep -v 'Last full backup' >> $LOGFILE
+  $DUPLICITY collection-status $TARGET >> $LOGFILE
   if [ $EMAIL_TO ]; then
-    cat ${LOGFILE} | mail -s "Backup Status: `hostname`" -a "From: ${EMAIL_FROM}" ${EMAIL_TO}
+    cat $LOGFILE | mail -s "Backup Status: `hostname`" -a "From: $EMAIL_FROM" $EMAIL_TO
   fi
   echo "Backup completed."
-
-elif [ "$1" == "--verify" ] || [ "$1" == "-v" ]; then
-  OPTIONS="${EXCLUDE} ${INCLUDE} --exclude=**"
-  ${DUPLICITY} verify ${OPTIONS} ${TARGET} ${ROOT}
-
-elif [ "$1" == "--clean" ] || [ "$1" == "-c" ]; then
-  ${DUPLICITY} cleanup --force ${TARGET}
-
-elif [ "$1" == "--list" ] || [ "$1" == "-l" ]; then
-  ${DUPLICITY} list-current-files ${FILE} ${TARGET}
-
-elif [ "$1" == "--status" ] || [ "$1" == "-s" ]; then
-  ${DUPLICITY} collection-status ${TARGET}
-
-elif [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
-  help
-
-elif [ "${1:0:1}" == "-" ] && [ "$1" != "-a" ] && [ "$1" != "--age" ]; then
-  echo "Unrecognized parameter: ${1}"
-  help
-  exit 1
-
+  finish
 else
-  if [ ! -d ${RESTORE}/restore_${TIME} ]; then
-    echo "Attempting to create restore directory ${RESTORE}/restore_${TIME}..."
-    if ! mkdir -p ${RESTORE}/restore_${TIME}; then
-      echo "Restore directory ${RESTORE}/restore_${TIME} could not be created by this user: ${USER}"
-      exit 1
-    else
-      echo "Directory ${RESTORE}/restore_${TIME} successfully created."
+  while getopts 'lshma:' OPTION; do
+    case $OPTION in
+      l) $DUPLICITY list-current-files $FILE $TARGET
+         finish;;
+      s) $DUPLICITY collection-status $TARGET
+         finish;;
+      a) age="${OPTARG}D";;
+      m) move=1;;
+      h | ?) help
+         finish;;
+    esac
+  done
+  shift $(($OPTIND - 1))
+  if [ $# -gt 1 ]; then
+    echo "You may only restore one file or directory at a time."
+    finish
+  fi
+  file=$*
+  if [ ! -d $RESTORE/restore_$TIME ]; then
+    if ! mkdir -p $RESTORE/restore_$TIME; then
+      echo "Restore directory $RESTORE/restore_$TIME could not be created by this user: $USER"
+      finish
     fi
   elif [ ! -w ${RESTORE}/restore_${TIME} ]; then
-    echo "Restore directory ${RESTORE}/restore_${TIME} is not writeable by this user: ${USER}"
-    exit 1
+    echo "Restore directory $RESTORE/restore_$TIME is not writeable by this user: $USER"
+    finish
   fi
-  if [ "$1" == "-a" ] || [ "$1" == "--age" ]; then
-    AGE="$2D"
-    FILE="$3"
-  else
-    AGE="0D"
-    FILE="$1"
+  if [ ! $age ]; then
+    age="0D"
   fi
-  echo "Performing restore..."
-  if [ ${FILE:0:1} == "/" ]; then
-    FILE=${FILE:1}
+  if [ ${file:0:1} == "/" ]; then
+    file=${file:1}
   else
     if [ `pwd` != "/" ]; then
       dir=`pwd`"/"
       dir=${dir:1}
     fi
-    FILE=${dir}${FILE}
+    file=$dir$file
   fi
-  if [ ${FILE:$(( ${#FILE} - 1 )):1} == "/" ]; then
-    FILE=${FILE:0:$(( ${#FILE} - 1 ))}
+  if [ ${file:$(( ${#file} - 1 )):1} == "/" ]; then
+    file=${file:0:$(( ${#file} - 1 ))}
   fi
-  a=`echo ${FILE} | rev`
+  a=`echo $file | rev`
   a=${a:0:`expr index ${a} / - 1`}
-  FILENAME=`echo ${a} | rev`
-  if ${DUPLICITY} -v 0 -t ${AGE} --file-to-restore ${FILE} ${TARGET} ${RESTORE}/restore_${TIME}/${FILENAME}; then
-    echo "File(s) restored to ${RESTORE}/restore_${TIME}/${FILENAME}."
+  filename=`echo ${a} | rev`
+  if [ $move ]; then
+    restore_target="/$file"
+    message="File(s) restored to /$file."
+  else
+    restore_target="$RESTORE/restore_$TIME/$filename"
+    message="File(s) restored to $restore_target."
+  fi
+  echo "Performing restore. Please wait..."
+  if $DUPLICITY --force -v 0 -t $age --file-to-restore $file $TARGET $restore_target; then
+    echo $message
   fi
 fi
-
-unset CLOUDFILES_USERNAME 
-unset CLOUDFILES_APIKEY 
-unset PASSPHRASE
-unset RACKSPACE_SERVICENET 
+finish
