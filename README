@@ -12,15 +12,17 @@ You will need to modify the first part of the script, which is all configuration
 you must add your Cloud Files username and API key, as well as a GPG passphrase of your choosing.
 
 Usage:
-  cloudcity [OPTION] [FILE]
+  cloudcity [OPTIONS] [FILE]
 Options:
-  --age, -a [FILE]                 Specifies the age (in days) of the archived file or directory to be restored.
-  --clean, -c                      Deletes extraneous files in the backup repository.
-  --help, -h                       Displays this helpful information.
-  --list, -l                       Lists all the files currently stored in the backup repository.
-  --status, -s                     Displays information about the backup chains and sets in the backup repository.
-  --verify, -v                     Compares the files currently in the backup repository to those on the system.
+  -a AGE  Specifies the age (in days) of the archived file or directory to be restored.
+  -m      Automatically moves restored items to their original locations from the restore directory.
+  -h      Displays this helpful information.
+  -l      Lists all the files currently stored in the backup repository.
+  -s      Displays the status of the backup chains and sets in the backup repository.
 Examples:
-  cloudcity                        Performs an incremental or full backup, depending on whether the latter is due.
-  cloudcity /home/foo/             Restores the /home/foo directory.
-  cloudcity -a 2 /home/foo/bar.rb  Restores bar.rb as it existed two days ago.
+  cloudcity
+    Performs an incremental or full backup, depending on whether or not the latter is due.
+  cloudcity /home/foo/
+    Restores the /home/foo directory.
+  cloudcity -ma 2 /home/foo/bar.rb
+    Restores bar.rb as it existed two days ago and moves it from the restore directory to /home/foo/.
