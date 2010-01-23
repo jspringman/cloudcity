@@ -9,7 +9,7 @@ duplicity-0.5.18: http://savannah.nongnu.org/download/duplicity/duplicity-0.5.18
 This program has not been tested with other versions of the above software.
 
 You will need to modify the first part of the script, which is all configuration. At a minimum,
-you must add your Cloud Files username and API key, as well as a GPG passphrase of your choosing.
+you must add your Cloud Files username and API key, as well as a GPG passphrase of your choice.
 
 Usage:
   cloudcity [OPTIONS] [FILE]
