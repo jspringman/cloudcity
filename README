@@ -15,14 +15,14 @@ Usage:
   cloudcity [OPTIONS] [FILE]
 Options:
   -a AGE  Specifies the age (in days) of the archived file or directory to be restored.
-  -m      Automatically moves restored items to their original locations from the restore directory.
   -h      Displays this helpful information.
   -l      Lists all the files currently stored in the backup repository.
+  -m      Automatically moves restored items to their original locations from the restore directory.
   -s      Displays the status of the backup chains and sets in the backup repository.
 Examples:
   cloudcity
     Performs an incremental or full backup, depending on whether or not the latter is due.
   cloudcity /home/foo/
     Restores the /home/foo directory.
-  cloudcity -ma 2 /home/foo/bar.rb
+  cloudcity -ma2 /home/foo/bar.rb
     Restores bar.rb as it existed two days ago and moves it from the restore directory to /home/foo/.
