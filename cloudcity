@@ -79,6 +79,7 @@ LOG_FILE="duplicity.log"
 # Email addresses (email will not be sent if EMAIL_TO is left blank)
 EMAIL_TO=""
 EMAIL_FROM="Backup Agent <root@`hostname`>"
+SUBJECT="Backup Status: `hostname`"
  
 LOGFILE="$LOG_DIR$LOG_FILE"
 DUPLICITY=`which duplicity`
@@ -126,7 +127,7 @@ if [ ! $1 ]; then
   $DUPLICITY $ACTION $options $ROOT $TARGET | grep -v 'Last full backup' >> $LOGFILE
   $DUPLICITY collection-status $TARGET >> $LOGFILE
   if [ $EMAIL_TO ]; then
-    cat $LOGFILE | mail -s "Backup Status: `hostname`" -a "From: $EMAIL_FROM" $EMAIL_TO
+    cat $LOGFILE | mail -s "$SUBJECT" -a "From: $EMAIL_FROM" $EMAIL_TO
   fi
   echo "Backup completed."
   exit
