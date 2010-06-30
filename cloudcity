@@ -105,7 +105,7 @@ function help {
   echo -e "  -m      Automatically moves restored items to their original locations from the restore directory."
   echo -e "  -s      Displays the status of the backup chains and sets in the backup repository."
   echo -e "Examples:\n  $PROGRAM\n    Performs an incremental or full backup, depending on whether or not the latter is due." 
-  echo -e "  $PROGRAM /home/foo/\n    Restores the /home/foo directory."
+  echo -e "  $PROGRAM /home/foo/\n    Restores /home/foo to the directory specified by the RESTORE constant."
   echo -e "  $PROGRAM -ma2 /home/foo/bar.rb\n    Restores bar.rb as it existed two days ago and moves it from the restore directory to /home/foo/."
 }
 

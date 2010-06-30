@@ -23,6 +23,6 @@ Examples:
   cloudcity
     Performs an incremental or full backup, depending on whether or not the latter is due.
   cloudcity /home/foo/
-    Restores the /home/foo to the directory specified in the script(/tmp/restores by default).
+    Restores /home/foo to the directory specified by the RESTORE constant. 
   cloudcity -ma2 /home/foo/bar.rb
     Restores bar.rb as it existed two days ago and moves it from the restore directory to /home/foo/.
