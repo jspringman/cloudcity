@@ -162,7 +162,7 @@ else
   if [ ! $age ]; then
     age="0D"
   fi
-  if [ ${file:0:1} == "/" ]; then
+  if [ "${file:0:1}" == "/" ]; then
     file=${file:1}
   else
     if [ `pwd` != "/" ]; then
